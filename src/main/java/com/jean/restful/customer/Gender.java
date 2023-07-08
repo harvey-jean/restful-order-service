@@ -1,4 +1,10 @@
-package com.jean.restful.customer;/**
+package com.jean.restful.customer;
+
+/**
  * Created by Harvey's on 7/6/2023.
- */public enum Gender {
+ */
+public enum Gender {
+    MALE,
+    FEMALE,
+    OTHER
 }

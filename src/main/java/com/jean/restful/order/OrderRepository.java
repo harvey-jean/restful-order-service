@@ -1,4 +1,11 @@
-package com.jean.restful.order;/**
+package com.jean.restful.order;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+/**
  * Created by Harvey's on 7/6/2023.
- */public interface OrderRepository {
+ */
+@Repository
+public interface OrderRepository extends JpaRepository<Order, Long> {
 }
