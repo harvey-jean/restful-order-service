@@ -1,7 +1,11 @@
 package com.jean.restful.category;
 
 import com.jean.restful.product.Product;
+import com.jean.restful.shared.ExceptionBodyResponse;
+import com.jean.restful.shared.ResourceAlreadyExistsException;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,8 +37,14 @@ public class CategoryController {
     }
 
     @PostMapping
-    public Category addCategory(@RequestBody Category category) {
-        return categoryService.addCategory(category);
+    public ResponseEntity<Object> addCategory(@RequestBody Category category) {
+        try{
+            Category createCategory = categoryService.addCategory(category);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createCategory);
+        }catch (ResourceAlreadyExistsException exception){
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ExceptionBodyResponse(HttpStatus.CONFLICT.value(), exception.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")

@@ -1,5 +1,6 @@
 package com.jean.restful.category;
 
+import com.jean.restful.shared.ResourceAlreadyExistsException;
 import com.jean.restful.shared.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,10 @@ public class CategoryService {
     }
 
     public Category addCategory(Category category) {
+        if(categoryRepository.findByName(category.getName()) != null){
+            throw new ResourceAlreadyExistsException("Category: "+ category.getName() +" is already exist");
+        }
+
         return categoryRepository.save(category);
     }
 

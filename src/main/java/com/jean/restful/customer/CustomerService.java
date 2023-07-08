@@ -1,13 +1,16 @@
 package com.jean.restful.customer;
 
+import com.jean.restful.shared.AgeValidator;
 import com.jean.restful.shared.BadRequestException;
 import com.jean.restful.shared.PhoneNumberValidator;
 import com.jean.restful.shared.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Created by Harvey's on 7/6/2023.
@@ -17,25 +20,35 @@ import java.util.Optional;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final CustomerDTOMapper customerDTOMapper;
     private final PhoneNumberValidator phoneNumberValidator;
+    private final AgeValidator ageValidator;
 
-    public List<Customer> getAllCustomers() {
-        return customerRepository.findAll();
+    public List<CustomerDTO> getAllCustomers() {
+        return customerRepository.findAll()
+                .stream()
+                .map(customerDTOMapper)
+                .collect(Collectors.toList());
     }
 
-    public Customer getCustomerById(Long id) {
+    public CustomerDTO getCustomerById(Long id) {
         return customerRepository.findById(id)
+                .map(customerDTOMapper)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer id:"+ id +" does not exist"));
     }
 
-    public Customer getCustomerByEmail(String email) {
+    public CustomerDTO getCustomerByEmail(String email) {
         return customerRepository.findByEmail(email)
+                .map(customerDTOMapper)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer email:"+ email +" does not exist"));
     }
 
-    public List<Customer> getCustomerByName(String name) {
+    public List<CustomerDTO> getCustomerByName(String name) {
 
-        List<Customer> customers = customerRepository.findByNameContainingIgnoreCase(name);
+        List<CustomerDTO> customers = customerRepository.findByNameContainingIgnoreCase(name)
+                .stream()
+                .map(customerDTOMapper)
+                .collect(Collectors.toList());
 
         if(customers.isEmpty()){
             throw new ResourceNotFoundException("No Customer with name:"+ name + " is found");
@@ -44,9 +57,12 @@ public class CustomerService {
         return customers;
     }
 
-    public List<Customer> getCustomerByAddress(String address) {
+    public List<CustomerDTO> getCustomerByAddress(String address) {
 
-        List<Customer> customers = customerRepository.findByAddressContainingIgnoreCase(address);
+        List<CustomerDTO> customers = customerRepository.findByAddressContainingIgnoreCase(address)
+                .stream()
+                .map(customerDTOMapper)
+                .collect(Collectors.toList());
 
         if(customers.isEmpty()){
             throw new ResourceNotFoundException("No Customer with address:"+ address + " is found");
@@ -55,9 +71,12 @@ public class CustomerService {
         return customers;
     }
 
-    public List<Customer> getCustomersByNameAndAddress(String name, String address) {
-        List<Customer> customers = customerRepository.
-                findByNameContainingIgnoreCaseAndAddressContainingIgnoreCase(name, address);
+    public List<CustomerDTO> getCustomersByNameAndAddress(String name, String address) {
+        List<CustomerDTO> customers = customerRepository.
+                findByNameContainingIgnoreCaseAndAddressContainingIgnoreCase(name, address)
+                .stream()
+                .map(customerDTOMapper)
+                .collect(Collectors.toList());
 
         if(customers.isEmpty()){
             throw new ResourceNotFoundException(
@@ -68,8 +87,9 @@ public class CustomerService {
         return customers;
     }
 
-    public Customer addCustomer(Customer customerRequest) {
+    public CustomerDTO addCustomer(Customer customerRequest) {
 
+        customerRequest.setCreatedAt(LocalDate.now());
         Optional<Customer> customerWithTheSameEmail = customerRepository.findByEmail(customerRequest.getEmail());
         Optional<Customer> customerWithTheSamePhone = customerRepository.findByPhone((customerRequest.getPhone()));
         //Cehck if the email is not already taken
@@ -84,26 +104,35 @@ public class CustomerService {
         if(!phoneNumberValidator.test(customerRequest.getPhone())){
             throw new BadRequestException("Phone " + customerRequest.getPhone() + " is not a Polish valid phone number");
         }
+        //Check if a customer is an adult (18 years old)
+        if(!ageValidator.test(customerRequest.getAge())){
+            throw new BadRequestException("Customers under 18 are not allowed to be using this system");
+        }
 
-        return customerRepository.save(customerRequest);
+        customerRepository.save(customerRequest);
+
+        return customerDTOMapper.apply(customerRequest);
     }
 
-    public Customer updateCustomer(Long id, Customer updatedCustomer) {
+    public CustomerDTO updateCustomer(Long id, Customer updatedCustomer) {
 
-        Customer existingCustomer = getCustomerById(id);
+        CustomerDTO existingCustomer = getCustomerById(id);
 
         existingCustomer.setName(updatedCustomer.getName());
         existingCustomer.setEmail(updatedCustomer.getEmail());
         existingCustomer.setPhone(updatedCustomer.getPhone());
         existingCustomer.setAddress(updatedCustomer.getAddress());
         existingCustomer.setGender(updatedCustomer.getGender());
+        existingCustomer.setAge(updatedCustomer.getAge());
 
-        return customerRepository.save(updatedCustomer);
+        customerRepository.save(updatedCustomer);
+
+        return customerDTOMapper.apply(updatedCustomer);
     }
 
-    public Customer partialUpdateCustomer(Long id, Customer updatedCustomer) {
+    public CustomerDTO partialUpdateCustomer(Long id, Customer updatedCustomer) {
 
-        Customer existingCustomer = getCustomerById(id);
+        CustomerDTO existingCustomer = getCustomerById(id);
 
         if(updatedCustomer.getName() != null) {
             existingCustomer.setName(updatedCustomer.getName());
@@ -125,7 +154,13 @@ public class CustomerService {
             existingCustomer.setGender(updatedCustomer.getGender());
         }
 
-        return customerRepository.save(updatedCustomer);
+        if(updatedCustomer.getAge() != 0) {
+            existingCustomer.setAge(updatedCustomer.getAge());
+        }
+
+        customerRepository.save(updatedCustomer);
+
+        return customerDTOMapper.apply(updatedCustomer);
     }
 
     public void deleteCustomer(Long id) {

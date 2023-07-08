@@ -1,4 +1,16 @@
-package com.jean.restful.shared;/**
+package com.jean.restful.shared;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+/**
  * Created by Harvey's on 7/8/2023.
- */public class ResourceAlreadyExistsException {
+ */
+@ResponseStatus(HttpStatus.CONFLICT)
+public class ResourceAlreadyExistsException extends RuntimeException{
+
+    public ResourceAlreadyExistsException(String exceptionMessage){
+        super(exceptionMessage);
+    }
+
 }

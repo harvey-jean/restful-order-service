@@ -1,5 +1,6 @@
 package com.jean.restful.customer;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jean.restful.order.Order;
 import com.jean.restful.rating.Rating;
 import jakarta.persistence.*;
@@ -9,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -41,10 +43,16 @@ public class Customer {
     @Column(nullable = false)
     private String address;
 
+    @NotBlank
+    @Column(nullable = false)
+    private int age;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
+
+    private LocalDate createdAt;
 
     @OneToMany(mappedBy = "customer")
     private List<Order> orders;
