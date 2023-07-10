@@ -74,8 +74,8 @@ public class CustomerController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> partialUpdateCustomer(@PathVariable Long id,
-                                                             @RequestParam(required = true) String email) {
+    public ResponseEntity<?> partialUpdateCustomerEmail(@PathVariable Long id,
+                                                        @RequestParam(required = true) String email) {
         try {
             CustomerDTO customerDTOPartialUpdate = customerService.partialUpdateCustomer(id, email);
             return ResponseEntity.ok(customerDTOPartialUpdate);
@@ -89,8 +89,16 @@ public class CustomerController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCustomer(@PathVariable Long id) {
-        customerService.deleteCustomer(id);
+    public ResponseEntity<MessageResponse> deleteCustomer(@PathVariable Long id) {
+        try {
+            customerService.deleteCustomer(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new MessageResponse(HttpStatus.OK.value(),
+                            "Customer ID [%s] has been deleted successfullly".formatted(id)));
+        }catch (ResourceNotFoundException exception){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage()));
+        }
     }
 
 }

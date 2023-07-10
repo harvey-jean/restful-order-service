@@ -191,11 +191,11 @@ public class CustomerService {
                 }
                 existingCustomer.get().setEmail(email);
                 customerRepository.save(existingCustomer.get());
+
+            return customerDTOMapper.apply(existingCustomer.get());
         }else{
             throw new ResourceNotFoundException("Customer Id [%s] does not exist".formatted(id));
         }
-
-        return customerDTOMapper.apply(existingCustomer.get());
     }
 
     public void deleteCustomer(final Long id) {

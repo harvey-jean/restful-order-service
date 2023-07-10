@@ -14,11 +14,11 @@ import java.util.Optional;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query("SELECT cat " +
             "FROM Category cat " +
-            "WHERE lower(cat.name) = LOWER(?1)")
+            "WHERE LOWER(cat.name) = LOWER(?1)")
     Optional<Category> findByName(String name);
 
     @Query("SELECT cat " +
             "FROM Category cat " +
-            "WHERE lower(cat.description) LIKE LOWER(CONCAT('%',?1,'%'))")
+            "WHERE LOWER(cat.description) LIKE LOWER(CONCAT('%',?1,'%'))")
     List<Category> findByDescription(String description);
 }
