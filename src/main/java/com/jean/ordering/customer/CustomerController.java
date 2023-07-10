@@ -1,8 +1,8 @@
 package com.jean.ordering.customer;
 
 import com.jean.ordering.shared.exceptions.BadRequestException;
-import com.jean.ordering.shared.exceptions.ExceptionBodyResponse;
 import com.jean.ordering.shared.exceptions.ResourceNotFoundException;
+import com.jean.ordering.shared.responses.MessageResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +31,7 @@ public class CustomerController {
     }
 
     @GetMapping("/search")
-    public List<CustomerDTO> getCustomersByNameAndAddress(
+    public List<CustomerDTO> getCustomersByNameOrAddressOrEmail(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String address,
             @RequestParam(required = false) String email) {
@@ -57,7 +57,7 @@ public class CustomerController {
             return ResponseEntity.status(HttpStatus.CREATED).body(customerDTO);
         }catch (BadRequestException exception){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ExceptionBodyResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
+                    .body(new MessageResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
         }
     }
 
@@ -69,7 +69,7 @@ public class CustomerController {
             return ResponseEntity.ok(customerDTOUpdate);
         }catch (BadRequestException exception){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ExceptionBodyResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
+                    .body(new MessageResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
         }
     }
 
@@ -81,10 +81,10 @@ public class CustomerController {
             return ResponseEntity.ok(customerDTOPartialUpdate);
         }catch (ResourceNotFoundException exception){
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ExceptionBodyResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage()));
+                    .body(new MessageResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage()));
         }catch (BadRequestException exception){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ExceptionBodyResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
+                    .body(new MessageResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
         }
     }
 

@@ -1,5 +1,6 @@
 package com.jean.ordering.category;
 
+import com.jean.ordering.customer.CustomerDTO;
 import com.jean.ordering.shared.exceptions.ResourceAlreadyExistsException;
 import com.jean.ordering.shared.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
@@ -33,8 +34,29 @@ public class CategoryService {
                         .formatted(name)));
     }
 
+    public List<Category> getCategoryByDescriptionKeyWord(final String descriptionKeyWord) {
+        List<Category> categoriesList = categoryRepository.findByDescription(descriptionKeyWord);
+        if (categoriesList.isEmpty()) {
+            throw new ResourceNotFoundException("Category with description key word [%s] does not exist"
+                    .formatted(descriptionKeyWord));
+        }
+
+        return categoriesList;
+    }
+
+    public List<Category> getCategoryBySearchingParams(final String name,
+                                                       final String description) {
+        if (name != null) {
+            return List.of(getCategoryByName(name));
+        } else if (description != null) {
+            return getCategoryByDescriptionKeyWord(description);
+        } else {
+            return getAllCategories();
+        }
+    }
+
     public void addCategory(final Category category) {
-        if(categoryRepository.findByName(category.getName()) != null){
+        if(categoryRepository.findByName(category.getName()).isPresent()){
             throw new ResourceAlreadyExistsException("Category:[%s] is already exist"
                     .formatted(category.getName()));
         }
@@ -46,6 +68,7 @@ public class CategoryService {
     public Category updateCategory(final Long id, final Category updatedCategory) {
         Category existingCategory = getCategoryById(id);
         existingCategory.setName(updatedCategory.getName());
+        existingCategory.setDescription(updatedCategory.getDescription());
         existingCategory.setCreatedAt(existingCategory.getCreatedAt());
 
         return categoryRepository.save(existingCategory);
@@ -56,6 +79,10 @@ public class CategoryService {
 
         if (updatedCategory.getName() != null) {
             existingCategory.setName(updatedCategory.getName());
+        }
+
+        if(updatedCategory.getDescription() != null){
+            existingCategory.setDescription(updatedCategory.getDescription());
         }
 
         return categoryRepository.save(existingCategory);

@@ -1,15 +1,16 @@
 package com.jean.ordering.category;
 
-import com.jean.ordering.customer.CustomerDTO;
 import com.jean.ordering.product.Product;
-import com.jean.ordering.shared.exceptions.ExceptionBodyResponse;
 import com.jean.ordering.shared.exceptions.ResourceAlreadyExistsException;
+import com.jean.ordering.shared.exceptions.ResourceNotFoundException;
+import com.jean.ordering.shared.responses.MessageResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by Harvey's on 7/6/2023.
@@ -27,8 +28,15 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
-    public Category getCategoryById(@PathVariable Long id) {
-        return categoryService.getCategoryById(id);
+    public ResponseEntity<?> getCategoryById(@PathVariable Long id) {
+        try{
+            Category category = categoryService.getCategoryById(id);
+            return ResponseEntity.status(HttpStatus.OK).body(category);
+        }catch (ResourceNotFoundException exception){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse(HttpStatus.NOT_FOUND.value(),
+                            "Category with id[%s] does not exist".formatted(id)));
+        }
     }
 
     @GetMapping("/{id}/products")
@@ -38,9 +46,10 @@ public class CategoryController {
     }
 
     @GetMapping("/search")
-    public Category getCategoryByName(
-            @RequestParam(required = false) String name) {
-        return categoryService.getCategoryByName(name);
+    public List<Category> getCategoryByNameOrDescription(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String description) {
+        return categoryService.getCategoryBySearchingParams(name, description);
     }
 
     @PostMapping
@@ -48,11 +57,11 @@ public class CategoryController {
         try{
             categoryService.addCategory(category);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body("Category[%s] has been created successfullly"
-                            .formatted(category.getName()));
+                    .body(new MessageResponse(HttpStatus.CREATED.value(),
+                            "Category[%s] has been created successfullly".formatted(category.getName())));
         }catch (ResourceAlreadyExistsException exception){
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ExceptionBodyResponse(HttpStatus.CONFLICT.value(), exception.getMessage()));
+                    .body(new MessageResponse(HttpStatus.CONFLICT.value(), exception.getMessage()));
         }
     }
 
