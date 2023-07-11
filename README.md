@@ -1,3 +1,5 @@
+***********************************************************
+***********************************************************
 THIS IS A RESTFUL API FOR MANAGING AN ONLINE ORDERING SYSTEM
 ************************************************************
 
@@ -37,3 +39,13 @@ Below are based relationship between
         One customer can rate multiple products.
         One rating is associated with a single customer.
         This relationship is a one-to-many relationship, as one customer can have multiple ratings.
+
+***********************************************************
+***********************************************************
+Required tools to run the application
+***********************************************************
+- Jdk 17
+- javac release 17
+- Libraries for Springboot V3.1.1
+- Used Maven wrapper
+- Tested on MysQL 8, H2

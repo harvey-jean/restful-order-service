@@ -32,13 +32,6 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!--In memory DB added for Unit Testing purpose-->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>test</scope>
-		</dependency>
-
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

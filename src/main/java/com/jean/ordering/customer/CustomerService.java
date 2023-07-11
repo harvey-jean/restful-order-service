@@ -47,7 +47,7 @@ public class CustomerService {
 
     public List<CustomerDTO> getCustomerByName(final String name) {
 
-        List<CustomerDTO> customers = customerRepository.findByNameContainingIgnoreCase(name)
+        final List<CustomerDTO> customers = customerRepository.findByNameContainingIgnoreCase(name)
                 .stream()
                 .map(customerDTOMapper)
                 .collect(Collectors.toList());
@@ -62,7 +62,7 @@ public class CustomerService {
 
     public List<CustomerDTO> getCustomerByAddress(final String address) {
 
-        List<CustomerDTO> customers = customerRepository.findByAddressContainingIgnoreCase(address)
+        final List<CustomerDTO> customers = customerRepository.findByAddressContainingIgnoreCase(address)
                 .stream()
                 .map(customerDTOMapper)
                 .collect(Collectors.toList());
@@ -76,7 +76,7 @@ public class CustomerService {
     }
 
     public List<CustomerDTO> getCustomersByNameAndAddress(final String name, final String address) {
-        List<CustomerDTO> customers = customerRepository.
+        final List<CustomerDTO> customers = customerRepository.
                 findByNameContainingIgnoreCaseAndAddressContainingIgnoreCase(name, address)
                 .stream()
                 .map(customerDTOMapper)
@@ -112,15 +112,15 @@ public class CustomerService {
         //Setting the date of registration
         customerRequest.setCreatedAt(LocalDateTime.now());
 
-        int numberOfEmailAlreadyExists = customerRepository
+        final int numberOfEmailAlreadyExists = customerRepository
                 .numberOfEmailExistsSelection(customerRequest.getEmail());
-        Optional<Customer> customerWithTheSamePhone = customerRepository
+        final Optional<Customer> customerWithTheSamePhone = customerRepository
                 .findByPhone((customerRequest.getPhone()));
-        //Cehck if the email is already taken
+        //Check if the email is already taken
         if(numberOfEmailAlreadyExists > 0){
             throw new BadRequestException("Email [%s] is already taken".formatted(customerRequest.getEmail()));
         }
-        //Cehck if the phone is already registered
+        //Check if the phone is already registered
         if(customerWithTheSamePhone.isPresent()){
             throw new BadRequestException("Phone [%s] is already exist".formatted(customerRequest.getPhone()));
         }
@@ -139,24 +139,20 @@ public class CustomerService {
     }
 
     public CustomerDTO updateCustomer(final Long id, final Customer updatedCustomer) {
+        updatedCustomer.setId(id);
+        final CustomerDTO existingCustomer = getCustomerById(id);
 
-        CustomerDTO existingCustomer = getCustomerById(id);
-
-        int numberOfEmailAlreadyExists = customerRepository
+        final int numberOfEmailAlreadyExists = customerRepository
                 .numberOfEmailExistsSelection(updatedCustomer.getEmail());
-        Optional<Customer> customerWithTheSamePhone = customerRepository
+        final Optional<Customer> customerWithTheSamePhone = customerRepository
                 .findByPhone((updatedCustomer.getPhone()));
-        Optional<Customer> customerWithTheSameEmail = customerRepository
-                .findByEmail((updatedCustomer.getEmail()));
 
         //Check if the email is already taken by another customer with a different Id
-        if(numberOfEmailAlreadyExists > 0
-                && id != customerWithTheSameEmail.get().getId()){
+        if(numberOfEmailAlreadyExists > 0){
             throw new BadRequestException("Email [%s] is already taken".formatted(updatedCustomer.getEmail()));
         }
-        //Cehck if the phone is already registered under another Customer with a different Id
-        if(customerWithTheSamePhone.isPresent()
-                && id != customerWithTheSamePhone.get().getId()){
+        //Check if the phone is already registered under another Customer with a different Id
+        if(customerWithTheSamePhone.isPresent()){
             throw new BadRequestException("Phone [%s] is already exist".formatted(updatedCustomer.getPhone()));
         }
         //Check if the phone is a Polish valid phone number
@@ -177,25 +173,19 @@ public class CustomerService {
     public CustomerDTO partialUpdateCustomer(final Long id,
                                              final String email) {
 
-        Optional<Customer> existingCustomer = customerRepository.findById(id);
-        if(existingCustomer.isPresent()) {
-                int numberOfEmailAlreadyExists = customerRepository
-                        .numberOfEmailExistsSelection(email);
-                Optional<Customer> customerWithTheSameEmail = customerRepository
-                        .findByEmail((email));
+        return customerRepository.findById(id)
+                .map(existingCustomer -> {
+                    final int numberOfEmailAlreadyExists = customerRepository
+                            .numberOfEmailExistsSelection(email);
+                    if (numberOfEmailAlreadyExists < 1) {
+                        existingCustomer.setEmail(email);
+                        customerRepository.save(existingCustomer);
 
-                //Check if the email is already taken by another customer with a different Id
-                if (numberOfEmailAlreadyExists > 0
-                        && id != customerWithTheSameEmail.get().getId()) {
+                        return customerDTOMapper.apply(existingCustomer);
+                    }
                     throw new BadRequestException("Email [%s] is already taken".formatted(email));
-                }
-                existingCustomer.get().setEmail(email);
-                customerRepository.save(existingCustomer.get());
 
-            return customerDTOMapper.apply(existingCustomer.get());
-        }else{
-            throw new ResourceNotFoundException("Customer Id [%s] does not exist".formatted(id));
-        }
+                }).orElseThrow(() -> new ResourceNotFoundException("Customer Id [%s] does not exist".formatted(id)));
     }
 
     public void deleteCustomer(final Long id) {

@@ -1,6 +1,5 @@
 package com.jean.ordering.category;
 
-import com.jean.ordering.customer.CustomerDTO;
 import com.jean.ordering.shared.exceptions.ResourceAlreadyExistsException;
 import com.jean.ordering.shared.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
@@ -9,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Created by Harvey's on 7/6/2023.
@@ -17,25 +17,41 @@ import java.util.Optional;
 @Service
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final CategoryDTOMapper categoryDTOMapper;
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryDTO> getAllCategories() {
+        return categoryRepository.findAll()
+                .stream()
+                .map(categoryDTOMapper)
+                .collect(Collectors.toList());
     }
 
-    public Category getCategoryById(final Long id) {
+    public CategoryDTO getCategoryById(final Long id) {
+        return categoryRepository.findById(id)
+                .map(categoryDTOMapper)
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id[%s] does not exist"
+                        .formatted(id)));
+    }
+
+    public Category getCategoryProdById(final Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category with id[%s] does not exist"
                         .formatted(id)));
     }
 
-    public Category getCategoryByName(final String name) {
+    public CategoryDTO getCategoryByName(final String name) {
         return categoryRepository.findByName(name)
+                .map(categoryDTOMapper)
                 .orElseThrow(() -> new ResourceNotFoundException("Category with name[%s] does not exist"
                         .formatted(name)));
     }
 
-    public List<Category> getCategoryByDescriptionKeyWord(final String descriptionKeyWord) {
-        List<Category> categoriesList = categoryRepository.findByDescription(descriptionKeyWord);
+    public List<CategoryDTO> getCategoryByDescriptionKeyWord(final String descriptionKeyWord) {
+        final List<CategoryDTO> categoriesList = categoryRepository
+                .findByDescription(descriptionKeyWord)
+                .stream()
+                .map(categoryDTOMapper)
+                .collect(Collectors.toList());
         if (categoriesList.isEmpty()) {
             throw new ResourceNotFoundException("Category with description key word [%s] does not exist"
                     .formatted(descriptionKeyWord));
@@ -44,7 +60,7 @@ public class CategoryService {
         return categoriesList;
     }
 
-    public List<Category> getCategoryBySearchingParams(final String name,
+    public List<CategoryDTO> getCategoryBySearchingParams(final String name,
                                                        final String description) {
         if (name != null) {
             return List.of(getCategoryByName(name));
@@ -55,7 +71,7 @@ public class CategoryService {
         }
     }
 
-    public void addCategory(final Category category) {
+    public CategoryDTO addCategory(final Category category) {
         if(categoryRepository.findByName(category.getName()).isPresent()){
             throw new ResourceAlreadyExistsException("Category:[%s] is already exist"
                     .formatted(category.getName()));
@@ -63,29 +79,37 @@ public class CategoryService {
         category.setCreatedAt(LocalDateTime.now());
         categoryRepository.save(category);
 
+        return categoryDTOMapper.apply(category);
     }
 
-    public Category updateCategory(final Long id, final Category updatedCategory) {
-        Category existingCategory = getCategoryById(id);
-        existingCategory.setName(updatedCategory.getName());
-        existingCategory.setDescription(updatedCategory.getDescription());
-        existingCategory.setCreatedAt(existingCategory.getCreatedAt());
+    public CategoryDTO updateCategory(final Long id, final Category updatedCategory) {
+        updatedCategory.setId(id);
+        final CategoryDTO existingCategory = getCategoryById(id);
+        updatedCategory.setCreatedAt(existingCategory.getCreatedAt());
+        categoryRepository.save(updatedCategory);
 
-        return categoryRepository.save(existingCategory);
+        return categoryDTOMapper.apply(updatedCategory);
     }
 
-    public Category partialUpdateCategory(final Long id, final Category updatedCategory) {
-        Category existingCategory = getCategoryById(id);
+    public CategoryDTO partialUpdateCategory(final Long id, final Category updatedCategory) {
+        updatedCategory.setId(id);
+        final Optional<Category> existingCategory = categoryRepository.findById(id);
 
-        if (updatedCategory.getName() != null) {
-            existingCategory.setName(updatedCategory.getName());
+        if(existingCategory.isPresent()) {
+            if (updatedCategory.getName() != null) {
+                existingCategory.get().setName(updatedCategory.getName());
+            }
+
+            if (updatedCategory.getDescription() != null) {
+                existingCategory.get().setDescription(updatedCategory.getDescription());
+            }
+
+            categoryRepository.save(existingCategory.get());
+            return categoryDTOMapper.apply(existingCategory.get());
+        }else{
+            throw new ResourceNotFoundException("Product with id:[%s] does not exist"
+                    .formatted(id));
         }
-
-        if(updatedCategory.getDescription() != null){
-            existingCategory.setDescription(updatedCategory.getDescription());
-        }
-
-        return categoryRepository.save(existingCategory);
     }
 
     public void deleteCategory(final Long id) {

@@ -38,7 +38,7 @@ public class ProductService {
     }
 
     public List<ProductDTO> getProductsByName(final String name) {
-        List<ProductDTO> products = productRepository.findByName(name)
+        final List<ProductDTO> products = productRepository.findByName(name)
                 .stream()
                 .map(productDTOMapper)
                 .collect(Collectors.toList());
@@ -52,7 +52,7 @@ public class ProductService {
     }
 
     public List<ProductDTO> getProductsByDescriptionKeyword(final String descriptionKeyWord) {
-        List<ProductDTO> products = productRepository.findByDescriptionContaining(descriptionKeyWord)
+        final List<ProductDTO> products = productRepository.findByDescriptionContaining(descriptionKeyWord)
                 .stream()
                 .map(productDTOMapper)
                 .collect(Collectors.toList());
@@ -68,7 +68,7 @@ public class ProductService {
 
     public List<ProductDTO> getProductsByNameAndDescription(final String name,
                                                          final String descriptionKeyWord) {
-        List<ProductDTO> products = productRepository
+        final List<ProductDTO> products = productRepository
                 .findByNameAndDescriptionContaining(name, descriptionKeyWord)
                 .stream()
                 .map(productDTOMapper)
@@ -96,17 +96,20 @@ public class ProductService {
         }
     }
 
-    public void addProduct(final Product product) {
-        Category category = categoryService.getCategoryById(product.getCategory().getId());
+    public ProductDTO addProduct(final Product product) {
+        final Category category = categoryService.getCategoryProdById(product.getCategory().getId());
         product.setCategory(category);
         product.setCreatedAt(LocalDateTime.now());
 
         productRepository.save(product);
+
+        return productDTOMapper.apply(product);
     }
 
     public ProductDTO updateProduct(final Long id, final Product updatedProduct) {
-        ProductDTO existingProduct = getProductById(id);
-        Category category = categoryService.getCategoryById(updatedProduct.getCategory().getId());
+        updatedProduct.setId(id);
+        final ProductDTO existingProduct = getProductById(id);
+        final Category category = categoryService.getCategoryProdById(updatedProduct.getCategory().getId());
         updatedProduct.setCategory(category);
         updatedProduct.setCreatedAt(existingProduct.getCreatedAt());
         productRepository.save(updatedProduct);
@@ -115,7 +118,7 @@ public class ProductService {
     }
 
     public ProductDTO partialUpdateProduct(final Long id, final Product updatedProduct) {
-        Optional<Product> existingProduct = productRepository.findById(id);
+        final Optional<Product> existingProduct = productRepository.findById(id);
 
         if(existingProduct.isPresent()) {
             if (updatedProduct.getName() != null) {

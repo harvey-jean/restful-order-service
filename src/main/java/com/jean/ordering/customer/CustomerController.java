@@ -1,8 +1,5 @@
 package com.jean.ordering.customer;
 
-import com.jean.ordering.shared.exceptions.BadRequestException;
-import com.jean.ordering.shared.exceptions.ResourceNotFoundException;
-import com.jean.ordering.shared.responses.MessageResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,67 +35,26 @@ public class CustomerController {
         return customerService.getCustomersBySearchingParams(name, address, email);
     }
 
-   /* @GetMapping("/{id}/orders")
-    public List<Order> getCustomerOrders(@PathVariable Long id) {
-        Customer customer = customerService.getCustomerById(id);
-        return customer.getOrders();
-    }*/
-
-    /*@GetMapping("/{id}/ratings")
-    public List<Rating> getCustomerRatings(@PathVariable Long id) {
-        Customer customer = customerService.getCustomerById(id);
-        return customer.getRatings();
-    }*/
-
     @PostMapping
-    public ResponseEntity<?> addCustomer(@RequestBody Customer customer) {
-        try {
-            CustomerDTO customerDTO = customerService.addCustomer(customer);
-            return ResponseEntity.status(HttpStatus.CREATED).body(customerDTO);
-        }catch (BadRequestException exception){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new MessageResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
-        }
+    public ResponseEntity<CustomerDTO> addCustomer(@RequestBody Customer customer) {
+            return new ResponseEntity(customerService.addCustomer(customer),HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer) {
-        try {
-            updatedCustomer.setId(id);
-            CustomerDTO customerDTOUpdate = customerService.updateCustomer(id, updatedCustomer);
-            return ResponseEntity.ok(customerDTOUpdate);
-        }catch (BadRequestException exception){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new MessageResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
-        }
+    public CustomerDTO updateCustomer(@PathVariable Long id,
+                                      @RequestBody Customer updatedCustomer) {
+            return customerService.updateCustomer(id, updatedCustomer);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> partialUpdateCustomerEmail(@PathVariable Long id,
-                                                        @RequestParam(required = true) String email) {
-        try {
-            CustomerDTO customerDTOPartialUpdate = customerService.partialUpdateCustomer(id, email);
-            return ResponseEntity.ok(customerDTOPartialUpdate);
-        }catch (ResourceNotFoundException exception){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new MessageResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage()));
-        }catch (BadRequestException exception){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new MessageResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
-        }
+    public CustomerDTO partialUpdateCustomerEmail(@PathVariable Long id,
+                                                  @RequestParam(required = true) String email) {
+            return customerService.partialUpdateCustomer(id, email);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<MessageResponse> deleteCustomer(@PathVariable Long id) {
-        try {
+    public void deleteCustomer(@PathVariable Long id) {
             customerService.deleteCustomer(id);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new MessageResponse(HttpStatus.OK.value(),
-                            "Customer ID [%s] has been deleted successfullly".formatted(id)));
-        }catch (ResourceNotFoundException exception){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new MessageResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage()));
-        }
     }
 
 }
