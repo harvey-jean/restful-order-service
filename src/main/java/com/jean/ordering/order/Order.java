@@ -1,5 +1,6 @@
 package com.jean.ordering.order;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jean.ordering.customer.Customer;
 import com.jean.ordering.product.Product;
 import jakarta.persistence.*;
@@ -28,10 +29,12 @@ public class Order {
 
     private LocalDate orderDate;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
             name = "order_product",

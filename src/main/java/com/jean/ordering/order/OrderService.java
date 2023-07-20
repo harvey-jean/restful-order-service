@@ -4,6 +4,7 @@ import com.jean.ordering.shared.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -25,8 +26,11 @@ public class OrderService {
                         .formatted(id)));
     }
 
-    public Order addOrder(final Order order) {
-        return orderRepository.save(order);
+    public String addOrder(final Order order) {
+        order.setOrderDate(LocalDate.now());
+        orderRepository.save(order);
+
+        return "Order created successfully";
     }
 
     public void deleteOrder(final Long id) {

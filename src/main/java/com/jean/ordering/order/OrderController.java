@@ -3,6 +3,8 @@ package com.jean.ordering.order;
 import com.jean.ordering.customer.Customer;
 import com.jean.ordering.product.Product;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,8 +42,9 @@ public class OrderController {
     }
 
     @PostMapping
-    public Order addProduct(@RequestBody Order order) {
-        return orderService.addOrder(order);
+    public ResponseEntity<String> addProduct(@RequestBody Order order) {
+
+        return new ResponseEntity(orderService.addOrder(order), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")
