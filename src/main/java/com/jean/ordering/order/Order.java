@@ -29,12 +29,10 @@ public class Order {
 
     private LocalDate orderDate;
 
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @JsonIgnore
     @ManyToMany
     @JoinTable(
             name = "order_product",

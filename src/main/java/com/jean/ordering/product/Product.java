@@ -1,6 +1,8 @@
 package com.jean.ordering.product;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jean.ordering.category.Category;
+import com.jean.ordering.order.Order;
 import com.jean.ordering.rating.Rating;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -30,6 +32,10 @@ public class Product {
 
     @OneToMany(mappedBy = "product")
     private List<Rating> ratings;
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "products")
+    private List<Order> orders;
 
     @ManyToOne
     @JoinColumn(name = "category_id")

@@ -20,32 +20,44 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public List<Order> getAllOrders() {
+    public List<OrderDTO> getAllOrders() {
         return orderService.getAllOrders();
     }
 
     @GetMapping("/{id}")
-    public Order getOrderById(@PathVariable Long id) {
+    public OrderDTO getOrderById(@PathVariable Long id) {
         return orderService.getOrderById(id);
     }
 
-    @GetMapping("/{id}/customer")
+    /*@GetMapping("/{id}/customer")
     public Customer getOrderCustomer(@PathVariable Long id) {
         Order order = orderService.getOrderById(id);
         return order.getCustomer();
-    }
+    }*/
 
-    @GetMapping("/{id}/products")
+    /*@GetMapping("/{id}/products")
     public List<Product> getOrderProducts(@PathVariable Long id) {
         Order order = orderService.getOrderById(id);
         return order.getProducts();
-    }
+    }*/
 
     @PostMapping
     public ResponseEntity<String> addProduct(@RequestBody Order order) {
 
         return new ResponseEntity(orderService.addOrder(order), HttpStatus.CREATED);
     }
+
+    @PutMapping("/{id}")
+    public OrderDTO updateOrderedProducts(@PathVariable Long id, Order order) {
+        return orderService.updateOrderedProducts(id, order);
+    }
+
+    /*@PutMapping("/{id}/products/{product_id}")
+    public List<Product> updateOrderedProducts(@PathVariable Long id,
+                                               @PathVariable Long product_id) {
+        Order order = orderService.getOrderById(id);
+        return order.getProducts();
+    }*/
 
     @DeleteMapping("/{id}")
     public void deleteProduct(@PathVariable Long id) {
